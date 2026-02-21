@@ -9,6 +9,8 @@ import {
 import { resolveSkillKey } from "./frontmatter.js";
 import type { SkillEligibilityContext, SkillEntry } from "./types.js";
 
+export type { SkillEntry };
+
 const DEFAULT_CONFIG_VALUES: Record<string, boolean> = {
   "browser.enabled": true,
   "browser.evaluateEnabled": true,
@@ -36,14 +38,14 @@ export function resolveSkillConfig(
 }
 
 function normalizeAllowlist(input: unknown): string[] | undefined {
-  if (!input) {
+  if (input === undefined || input === null) {
     return undefined;
   }
   if (!Array.isArray(input)) {
     return undefined;
   }
   const normalized = input.map((entry) => String(entry).trim()).filter(Boolean);
-  return normalized.length > 0 ? normalized : undefined;
+  return normalized;
 }
 
 const BUNDLED_SOURCES = new Set(["openclaw-bundled"]);
@@ -57,11 +59,14 @@ export function resolveBundledAllowlist(config?: OpenClawConfig): string[] | und
 }
 
 export function isBundledSkillAllowed(entry: SkillEntry, allowlist?: string[]): boolean {
-  if (!allowlist || allowlist.length === 0) {
+  if (allowlist === undefined) {
     return true;
   }
   if (!isBundledSkill(entry)) {
     return true;
+  }
+  if (allowlist.length === 0) {
+    return false;
   }
   const key = resolveSkillKey(entry.skill, entry);
   return allowlist.includes(key) || allowlist.includes(entry.skill.name);
